@@ -7,3 +7,6 @@
 
 # .tfvars files
 *.tfvars
+
+# generated files
+**/generated/*

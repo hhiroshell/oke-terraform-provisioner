@@ -51,5 +51,5 @@ data "oci_containerengine_cluster_kube_config" "oke-kube-config" {
 
 resource "local_file" "kubeconfig" {
     content = "${data.oci_containerengine_cluster_kube_config.oke-kube-config.content}"
-    filename = "${path.module}/kubeconfig.txt"
+    filename = "${path.module}/generated/kubeconfig"
 }
