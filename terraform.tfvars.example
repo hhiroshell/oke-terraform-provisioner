@@ -17,7 +17,11 @@ oke_helm_tiller_enabled = true
 # OKE Node Pool
 oke_kubernetes_node_version = "v1.11.5"
 oke_node_pool_node_image_name = "Oracle-Linux-7.5"
-oke_node_pool_shape = "VM.Standard1.1"
-oke_node_pool_quantity_per_subnet = 1
+oke_node_pool_shape = [
+    "VM.Standard1.1"
+]
+oke_node_pool_quantity_per_subnet = [
+    1
+]
 oke_kube_config_expiration = 2592000
 oke_kube_config_token_version = "1.0.0"
