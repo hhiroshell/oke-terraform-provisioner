@@ -11,11 +11,11 @@ oke_resource_prefix = "example"
 
 # OKE Cluster
 oke_cluster_name = "example-cluster"
-oke_kubernetes_version = "v1.11.1"
+oke_kubernetes_version = "v1.11.5"
 oke_kubernetes_dashboard_enabled = true
 oke_helm_tiller_enabled = true
 oke_node_pool_name = "example-node-pool"
-oke_kubernetes_node_version = "v1.11.1"
+oke_kubernetes_node_version = "v1.11.5"
 oke_node_pool_node_image_name = "Oracle-Linux-7.5"
 oke_node_pool_shape = "VM.Standard1.1"
 oke_node_pool_quantity_per_subnet = 1
