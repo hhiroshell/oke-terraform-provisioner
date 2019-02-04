@@ -102,6 +102,22 @@ resource "oci_core_security_list" "oke-sl-w" {
                 max = "22"
                 min = "22"
             }
+        },{
+            stateless = false
+            source = "147.154.0.0/16"
+            protocol = "6"
+            tcp_options {
+                max = "22"
+                min = "22"
+            }
+        },{
+            stateless = false
+            source = "192.29.0.0/16"
+            protocol = "6"
+            tcp_options {
+                max = "22"
+                min = "22"
+            }
         # },{
         #     stateless = false
         #     source = "0.0.0.0/0"
