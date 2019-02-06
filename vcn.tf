@@ -96,7 +96,23 @@ resource "oci_core_security_list" "oke-sl-w" {
             }
         },{
             stateless = false
-            source = "138.1.0.0/17"
+            source = "134.70.0.0/17"
+            protocol = "6"
+            tcp_options {
+                max = "22"
+                min = "22"
+            }
+        },{
+            stateless = false
+            source = "138.1.0.0/16"
+            protocol = "6"
+            tcp_options {
+                max = "22"
+                min = "22"
+            }
+        },{
+            stateless = false
+            source = "140.91.0.0/17"
             protocol = "6"
             tcp_options {
                 max = "22"
