@@ -26,18 +26,23 @@ resource "oci_core_security_list" "oke-sl-lb" {
     compartment_id = "${var.compartment_ocid}"
     vcn_id = "${oci_core_virtual_network.oke-vcn.id}"
     display_name = "${var.oke_resource_prefix}-oke-sl-lb"
-    egress_security_rules = [
-        {
-            stateless = true
-            destination = "0.0.0.0/0"
-            protocol = "6"
-        }
-    ]
     ingress_security_rules = [
         {
-            stateless = true
+            stateless = false
             source = "0.0.0.0/0"
             protocol = "6"
+            tcp_options {
+                max = "80"
+                min = "80"
+            }
+        },{
+            stateless = false
+            source = "0.0.0.0/0"
+            protocol = "6"
+            tcp_options {
+                max = "443"
+                min = "443"
+            }
         }
     ]
 }
@@ -78,14 +83,6 @@ resource "oci_core_security_list" "oke-sl-w" {
             stateless = true
             source = "10.0.12.0/24"
             protocol = "all"
-        },{
-            stateless = false
-            source = "0.0.0.0/0"
-            protocol = "1"
-            icmp_options {
-                type = "3"
-                code = "4"
-            }
         },{
             stateless = false
             source = "130.35.0.0/16"
@@ -134,6 +131,14 @@ resource "oci_core_security_list" "oke-sl-w" {
                 max = "22"
                 min = "22"
             }
+        # },{
+        #     stateless = false
+        #     source = "0.0.0.0/0"
+        #     protocol = "6"
+        #     tcp_options {
+        #         max = "22"
+        #         min = "22"
+        #     }
         # },{
         #     stateless = false
         #     source = "0.0.0.0/0"
