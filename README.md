@@ -3,8 +3,6 @@
 ==========
 Terraformnを使ってOKEのクラスターをプロビジョニングする手順を記します。
 
-OCIのGUIコンソールを使ってOKEクラスターを作成する方法は、[OKEの始め方](https://qiita.com/hhiroshell/items/5e812a4cccbdbb16a3fb)を参照ください。
-
 
 動作確認できている条件
 ----------------------
@@ -218,25 +216,6 @@ Terraformをインストールします。利用するPCのプラットフォー
     Terraform v0.11.8
 
 
-2.3. terraform-provider-ociをインストールする
----------------------------------------------
-TerraformからOCIを操作するためのプラグインをインストールします。こちらも、利用するPCのプラットフォームに合わせて、適切なものをダウンロードします。
-ダウンロード対象のURLの確認は[GithubのReleases](https://github.com/oracle/terraform-provider-oci/releases)を参照してください。
-
-同じくUbuntu 16.04でインストールする例です。
-
-    > wget https://github.com/oracle/terraform-provider-oci/releases/download/v2.2.4/linux_amd64.tar.gz
-    > tar xvf linux_amd64.tar.gz
-
-Terraformのプラグインは、``~/.terraform.d/plugins``に配置します。このディレクトリがなければ、新たに作成しておきます。
-
-    > mkdir -p ~/.terraform.d/plugins
-
-最後に、上のディレクトリにプラグイン本体をコピーします。
-
-    > mv linux_amd64/terraform-provider-oci_v2.2.4 ~/.terraform.d/plugins/
-
-
 以上で、CLIツール類のセットアップは完了です。
 
 
@@ -247,9 +226,9 @@ Terraformのプラグインは、``~/.terraform.d/plugins``に配置します。
 ここでは、実際にoke-terraform-provisionerを実行して、OKEをプロビジョンニングします。
 
 ### 3.1. Terraform Kubernetes Installerを準備する
-[oke-terraform-provisioner](https://hiroshi.hayakawa%40oracle.com@soepoc-nttdocomo.uscom-central-1.oraclecloud.com/soepoc-nttdocomo/s/soepoc-nttdocomo_soepoc_4042/scm/oke-terraform-provisioner.git)をcloneします。
+[oke-terraform-provisioner](https://github.com/hhiroshell/oke-terraform-provisioner.git)をcloneします。
 
-    > git clone https://hiroshi.hayakawa%40oracle.com@soepoc-nttdocomo.uscom-central-1.oraclecloud.com/soepoc-nttdocomo/s/soepoc-nttdocomo_soepoc_4042/scm/oke-terraform-provisioner.git
+    > git clone https://github.com/hhiroshell/oke-terraform-provisioner.git
     > cd oke-terraform-provisioner/
 
 
@@ -261,7 +240,7 @@ OKEクラスターの構成を、Terraformのパラメータファイル``terraf
     > vim terraform.tfvars
 
 パラメータファイルの冒頭に、OCIの環境情報とAPIアクセスキーの設定情報を記述している箇所があります。ここのパラメータを、1-3. で収集したものに変更していきます。<br>
-また、1-1. で作成したAPIアクセスキー（秘密鍵の方）のパスと、利用するOCIのリージョンもここで指定します。。
+また、1-1. で作成したAPIアクセスキー（秘密鍵の方）のパスと、利用するOCIのリージョンもここで指定します。
 
 対象のパラメータは以下のとおりです。
 
@@ -273,6 +252,9 @@ OKEクラスターの構成を、Terraformのパラメータファイル``terraf
 |private\_key\_path  |APIアクセスキー               |
 |compartment\_ocid   |CompartmentのOCID             |
 |region              |データセンターのリージョン    |
+|oke_node_pool_shape |Node Pool内に作るNodeのシェイプ。配列で複数指定すると、複数のNode Poolを作成可能 |
+|oke_node_pool_quantity_per_subnet |Node PoolのSubnetあたりのNode数。oke_node_pool_shapeで複数指定した場合は、対応する位置に値を設定する|
+
 
 その他、Kubernetesの各ノードのシェイプや、ファイヤーウォールの設定をしていきます。
 
@@ -283,23 +265,29 @@ OKEクラスターの構成を、Terraformのパラメータファイル``terraf
 tenancy_ocid = "ocid1.tenancy.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 user_ocid = "ocid1.user.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 fingerprint = "00:11:22:33:44:55:66:77:88:99:aa:bb:cc:dd:ee:ff"
-private_key_path = "/home/hhiroshell/.oci/oci_api_key.pem"
+private_key_path = "/home/user/.oci/oci_api_key.pem"
 compartment_ocid = "ocid1.compartment.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 region = "us-ashburn-1"
 
-# General
+# Resource Name Prefix
 oke_resource_prefix = "example"
 
 # OKE Cluster
-oke_cluster_name = "my-first-cluster"
-oke_kubernetes_version = "v1.11.1"
-oke_kubernetes_dashboard_enabled = false
-oke_helm_tiller_enabled = false
-oke_node_pool_name = "my-first-node-pool"
-oke_kubernetes_node_version = "v1.11.1"
+oke_kubernetes_version = "v1.11.5"
+oke_kubernetes_dashboard_enabled = true
+oke_helm_tiller_enabled = true
+
+# OKE Node Pool
+oke_kubernetes_node_version = "v1.11.5"
 oke_node_pool_node_image_name = "Oracle-Linux-7.5"
-oke_node_pool_shape = "VM.Standard2.2"
-oke_node_pool_quantity_per_subnet = 1
+oke_node_pool_shape = [
+    "VM.Standard1.1",
+    "VM.Standard2.1"
+]
+oke_node_pool_quantity_per_subnet = [
+    1,
+    2
+]
 oke_kube_config_expiration = 2592000
 oke_kube_config_token_version = "1.0.0"
 ```
