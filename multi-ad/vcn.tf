@@ -216,5 +216,5 @@ resource "oci_core_subnet" "oke-sn-w" {
         "${oci_core_security_list.oke-sl-w-healthcheck-from-master.id}",
         # "${oci_core_security_list.oke-sl-w-optional.id}",
     ]
-    dns_label = "w1${count.index}"
+    dns_label = "w${count.index}"
 }
