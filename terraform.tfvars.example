@@ -1,27 +1,27 @@
-# OCI
+# OCI Provider
 tenancy_ocid = "ocid1.tenancy.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 user_ocid = "ocid1.user.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 fingerprint = "00:11:22:33:44:55:66:77:88:99:aa:bb:cc:dd:ee:ff"
 private_key_path = "/home/user/.oci/oci_api_key.pem"
-compartment_ocid = "ocid1.compartment.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 region = "us-ashburn-1"
 
 # Resource Name Prefix
 oke_resource_prefix = "example"
 
+# Target compartment
+compartment_ocid = "ocid1.compartment.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
 # OKE Cluster
-oke_kubernetes_version = "v1.11.5"
-oke_kubernetes_dashboard_enabled = true
-oke_helm_tiller_enabled = true
+oke_kubernetes_version = "v1.12.7"
+oke_kubernetes_dashboard_enabled = false
+oke_helm_tiller_enabled = false
 
 # OKE Node Pool
-oke_kubernetes_node_version = "v1.11.5"
-oke_node_pool_node_image_name = "Oracle-Linux-7.5"
+oke_kubernetes_node_version = "v1.12.7"
+oke_node_pool_node_image_name = "Oracle-Linux-7.6"
 oke_node_pool_shape = [
     "VM.Standard1.1"
 ]
 oke_node_pool_quantity_per_subnet = [
     1
 ]
-oke_kube_config_expiration = 2592000
-oke_kube_config_token_version = "1.0.0"

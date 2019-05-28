@@ -1,13 +1,15 @@
-variable "oke_resource_prefix" {}
-
 locals {
     cidr_public_internet = "0.0.0.0/0"
     cidr_cluster_wide = "10.0.0.0/16"
-    cidr_vcn_loadbalancer_ad1 = "10.0.20.0/24"
-    cidr_vcn_loadbalancer_ad2 = "10.0.21.0/24"
-    cidr_vcn_worker_ad1 = "10.0.10.0/24"
-    cidr_vcn_worker_ad2 = "10.0.11.0/24"
-    cidr_vcn_worker_ad3 = "10.0.12.0/24"
+    cidr_vcn_loadbalancer = [
+        "10.0.20.0/24",
+        "10.0.21.0/24",
+    ]
+    cidr_vcn_worker = [
+        "10.0.10.0/24",
+        "10.0.11.0/24",
+        "10.0.12.0/24",
+    ]
 }
 
 resource "oci_core_virtual_network" "oke-vcn" {
@@ -64,30 +66,30 @@ resource "oci_core_security_list" "oke-sl-w-between-workers" {
     egress_security_rules = [
         {
             stateless = true
-            destination = "${local.cidr_vcn_worker_ad1}"
+            destination = "${local.cidr_vcn_worker[0]}"
             protocol = "all"
         },{
             stateless = true
-            destination = "${local.cidr_vcn_worker_ad2}"
+            destination = "${local.cidr_vcn_worker[1]}"
             protocol = "all"
         },{
             stateless = true
-            destination = "${local.cidr_vcn_worker_ad3}"
+            destination = "${local.cidr_vcn_worker[2]}"
             protocol = "all"
         }
     ]
     ingress_security_rules = [
         {
             stateless = true
-            source = "${local.cidr_vcn_worker_ad1}"
+            source = "${local.cidr_vcn_worker[0]}"
             protocol = "all"
         },{
             stateless = true
-            source = "${local.cidr_vcn_worker_ad2}"
+            source = "${local.cidr_vcn_worker[1]}"
             protocol = "all"
         },{
             stateless = true
-            source = "${local.cidr_vcn_worker_ad3}"
+            source = "${local.cidr_vcn_worker[2]}"
             protocol = "all"
         }
     ]
@@ -188,71 +190,31 @@ resource "oci_core_security_list" "oke-sl-w-optional" {
     ]
 }
 
-resource "oci_core_subnet" "oke-sn-lb-ad1" {
+resource "oci_core_subnet" "oke-sn-lb" {
+    count = "${length(data.oci_identity_availability_domains.ads.availability_domains) > 2 ? 2 : 1}"
     compartment_id = "${var.compartment_ocid}"
     vcn_id = "${oci_core_virtual_network.oke-vcn.id}"
-    display_name = "${var.oke_resource_prefix}-oke-sn-lb-ad1"
-    availability_domain = "${lookup(data.oci_identity_availability_domains.ads.availability_domains[0], "name")}"
-    cidr_block = "10.0.20.0/24"
+    display_name = "${var.oke_resource_prefix}-oke-sn-lb-ad${count.index}"
+    availability_domain = "${lookup(data.oci_identity_availability_domains.ads.availability_domains["${count.index}"], "name")}"
+    cidr_block = "${local.cidr_vcn_loadbalancer["${count.index}"]}"
     security_list_ids = [
         "${oci_core_security_list.oke-sl-lb-from-internet.id}"
     ]
-    dns_label = "lb1"
+    dns_label = "lb${count.index}"
 }
 
-resource "oci_core_subnet" "oke-sn-lb-ad2" {
+resource "oci_core_subnet" "oke-sn-w" {
+    count = "${length(data.oci_identity_availability_domains.ads.availability_domains)}"
     compartment_id = "${var.compartment_ocid}"
     vcn_id = "${oci_core_virtual_network.oke-vcn.id}"
-    display_name = "${var.oke_resource_prefix}-oke-sn-lb-ad2"
-    availability_domain = "${lookup(data.oci_identity_availability_domains.ads.availability_domains[1], "name")}"
-    cidr_block = "10.0.21.0/24"
-    security_list_ids = [
-        "${oci_core_security_list.oke-sl-lb-from-internet.id}"
-    ]
-    dns_label = "lb2"
-}
-
-resource "oci_core_subnet" "oke-sn-w-ad1" {
-    compartment_id = "${var.compartment_ocid}"
-    vcn_id = "${oci_core_virtual_network.oke-vcn.id}"
-    display_name = "${var.oke_resource_prefix}-oke-sn-w-ad1"
-    availability_domain = "${lookup(data.oci_identity_availability_domains.ads.availability_domains[0], "name")}"
-    cidr_block = "${local.cidr_vcn_worker_ad1}"
+    display_name = "${var.oke_resource_prefix}-oke-sn-w-ad${count.index}"
+    availability_domain = "${lookup(data.oci_identity_availability_domains.ads.availability_domains["${count.index}"], "name")}"
+    cidr_block = "${local.cidr_vcn_worker["${count.index}"]}"
     security_list_ids = [
         "${oci_core_security_list.oke-sl-w-between-workers.id}",
         "${oci_core_security_list.oke-sl-w-to-external-services.id}",
         "${oci_core_security_list.oke-sl-w-healthcheck-from-master.id}",
         # "${oci_core_security_list.oke-sl-w-optional.id}",
     ]
-    dns_label = "w1"
-}
-
-resource "oci_core_subnet" "oke-sn-w-ad2" {
-    compartment_id = "${var.compartment_ocid}"
-    vcn_id = "${oci_core_virtual_network.oke-vcn.id}"
-    display_name = "${var.oke_resource_prefix}-oke-sn-w-ad2"
-    availability_domain = "${lookup(data.oci_identity_availability_domains.ads.availability_domains[1], "name")}"
-    cidr_block = "${local.cidr_vcn_worker_ad2}"
-    security_list_ids = [
-        "${oci_core_security_list.oke-sl-w-between-workers.id}",
-        "${oci_core_security_list.oke-sl-w-to-external-services.id}",
-        "${oci_core_security_list.oke-sl-w-healthcheck-from-master.id}",
-        # "${oci_core_security_list.oke-sl-w-optional.id}",
-    ]
-    dns_label = "w2"
-}
-
-resource "oci_core_subnet" "oke-sn-w-ad3" {
-    compartment_id = "${var.compartment_ocid}"
-    vcn_id = "${oci_core_virtual_network.oke-vcn.id}"
-    display_name = "${var.oke_resource_prefix}-oke-sn-w-ad3"
-    availability_domain = "${lookup(data.oci_identity_availability_domains.ads.availability_domains[2], "name")}"
-    cidr_block = "${local.cidr_vcn_worker_ad3}"
-    security_list_ids = [
-        "${oci_core_security_list.oke-sl-w-between-workers.id}",
-        "${oci_core_security_list.oke-sl-w-to-external-services.id}",
-        "${oci_core_security_list.oke-sl-w-healthcheck-from-master.id}",
-        # "${oci_core_security_list.oke-sl-w-optional.id}",
-    ]
-    dns_label = "w3"
+    dns_label = "w1${count.index}"
 }
