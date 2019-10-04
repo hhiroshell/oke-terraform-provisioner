@@ -19,8 +19,7 @@ resource "oci_containerengine_cluster" "oke-cluster" {
     vcn_id = "${oci_core_virtual_network.oke-vcn.id}"
     options {
         service_lb_subnet_ids = [
-            "${oci_core_subnet.oke-sn-lb.0.id}",
-            "${oci_core_subnet.oke-sn-lb.1.id}"
+            "${oci_core_subnet.oke-sn-lb.id}",
         ]
         add_ons {
             is_kubernetes_dashboard_enabled = "${var.oke_kubernetes_dashboard_enabled}"
@@ -37,12 +36,16 @@ resource "oci_containerengine_node_pool" "oke-node-pool" {
     kubernetes_version = "${var.oke_kubernetes_node_version}"
     node_image_name = "${var.oke_node_pool_node_image_name}"
     node_shape = "${element(var.oke_node_pool_shape, count.index)}"
-    subnet_ids = [
-        "${oci_core_subnet.oke-sn-w.0.id}",
-        "${oci_core_subnet.oke-sn-w.1.id}",
-        "${oci_core_subnet.oke-sn-w.2.id}"
-    ]
-    quantity_per_subnet = "${element(var.oke_node_pool_quantity_per_subnet, count.index)}"
+    node_config_details {
+        # placement_configs = [
+        placement_configs {
+            # TODO: Upgrading to Terraform v0.12 and Dynamic configuration blocks.
+            # for_each = data.oci_identity_availability_domains.ads.availability_domains
+            availability_domain = "${lookup(data.oci_identity_availability_domains.ads.availability_domains["0"], "name")}"
+            subnet_id = "${oci_core_subnet.oke-sn-w.id}"
+        }
+        size = "${element(var.oke_node_pool_quantity_per_subnet, 0)}"
+    }
 }
 
 data "oci_containerengine_cluster_kube_config" "oke-kube-config" {
