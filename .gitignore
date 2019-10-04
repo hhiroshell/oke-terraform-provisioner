@@ -1,4 +1,4 @@
-#  Local .terraform directories
+# Local .terraform directories
 **/.terraform/*
 
 # .tfstate files
@@ -10,3 +10,7 @@
 
 # generated files
 **/generated/*
+
+# Secrets for OCI
+**/secrets/*
+!**/secrets/oci_api_key.pem.generated
