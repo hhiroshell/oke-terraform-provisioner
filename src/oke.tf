@@ -1,5 +1,5 @@
 variable "oke_kubernetes_version" {
-  default = "v1.12.7"
+  default = "v1.13.5"
 }
 
 variable "oke_kubernetes_dashboard_enabled" {
@@ -11,7 +11,7 @@ variable "oke_helm_tiller_enabled" {
 }
 
 variable "oke_kubernetes_node_version" {
-  default = "v1.12.7"
+  default = "v1.13.5"
 }
 
 variable "oke_node_pool_node_image_name" {
