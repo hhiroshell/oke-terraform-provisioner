@@ -2,7 +2,11 @@ locals {
   cidr_public_internet  = "0.0.0.0/0"
   cidr_cluster_wide     = "10.0.0.0/16"
   cidr_vcn_loadbalancer = "10.0.20.0/24"
-  cidr_vcn_worker       = "10.0.10.0/24"
+  cidr_vcn_worker = [
+    "10.0.10.0/24",
+    "10.0.11.0/24",
+    "10.0.12.0/24",
+  ]
 }
 
 resource "oci_core_virtual_network" "oke-vcn" {
@@ -54,64 +58,33 @@ resource "oci_core_security_list" "oke-sl-lb-public-access" {
     protocol    = "6"
   }
   ingress_security_rules {
-    # {
-    #     stateless = true
-    #     source = "${local.cidr_public_internet}"
-    #     protocol = "6"
-    #     tcp_options {
-    #         max = "80"
-    #         min = "80"
-    #     }
-    # },{
-    #     stateless = true
-    #     source = "${local.cidr_public_internet}"
-    #     protocol = "6"
-    #     tcp_options {
-    #         max = "443"
-    #         min = "443"
-    #     }
-    # }
     stateless = true
     source    = local.cidr_public_internet
     protocol  = "6"
   }
 }
 
-# resource "oci_core_security_list" "oke-sl-w-between-workers" {
-#     compartment_id = "${var.compartment_ocid}"
-#     vcn_id = "${oci_core_virtual_network.oke-vcn.id}"
-#     display_name = "${var.oke_resource_prefix}-oke-sl-w-between-workers"
-#     egress_security_rules = [
-#         {
-#             stateless = true
-#             destination = "${local.cidr_vcn_worker[0]}"
-#             protocol = "all"
-#         },{
-#             stateless = true
-#             destination = "${local.cidr_vcn_worker[1]}"
-#             protocol = "all"
-#         },{
-#             stateless = true
-#             destination = "${local.cidr_vcn_worker[2]}"
-#             protocol = "all"
-#         }
-#     ]
-#     ingress_security_rules = [
-#         {
-#             stateless = true
-#             source = "${local.cidr_vcn_worker[0]}"
-#             protocol = "all"
-#         },{
-#             stateless = true
-#             source = "${local.cidr_vcn_worker[1]}"
-#             protocol = "all"
-#         },{
-#             stateless = true
-#             source = "${local.cidr_vcn_worker[2]}"
-#             protocol = "all"
-#         }
-#     ]
-# }
+resource "oci_core_security_list" "oke-sl-w-between-workers" {
+  compartment_id = "${var.compartment_ocid}"
+  vcn_id = "${oci_core_virtual_network.oke-vcn.id}"
+  display_name = "${var.oke_resource_prefix}-oke-sl-w-between-workers"
+  dynamic "egress_security_rules" {
+    for_each = local.cidr_vcn_worker
+    content {
+      stateless = true
+      destination = egress_security_rules.value
+      protocol = "all"
+    }
+  }
+  dynamic "ingress_security_rules" {
+    for_each = local.cidr_vcn_worker
+    content {
+      stateless = true
+      source = ingress_security_rules.value
+      protocol = "all"
+    }
+  }
+}
 
 resource "oci_core_security_list" "oke-sl-w-to-external-services" {
   compartment_id = var.compartment_ocid
@@ -123,63 +96,6 @@ resource "oci_core_security_list" "oke-sl-w-to-external-services" {
     protocol    = "all"
   }
 }
-
-# resource "oci_core_security_list" "oke-sl-w-healthcheck-from-master" {
-#     compartment_id = "${var.compartment_ocid}"
-#     vcn_id = "${oci_core_virtual_network.oke-vcn.id}"
-#     display_name = "${var.oke_resource_prefix}-oke-sl-w-healthcheck-from-master"
-#     ingress_security_rules = [
-#         {
-#             stateless = false
-#             source = "130.35.0.0/16"
-#             protocol = "6"
-#             tcp_options {
-#                 max = "22"
-#                 min = "22"
-#             }
-#         },{
-#             stateless = false
-#             source = "134.70.0.0/17"
-#             protocol = "6"
-#             tcp_options {
-#                 max = "22"
-#                 min = "22"
-#             }
-#         },{
-#             stateless = false
-#             source = "138.1.0.0/16"
-#             protocol = "6"
-#             tcp_options {
-#                 max = "22"
-#                 min = "22"
-#             }
-#         },{
-#             stateless = false
-#             source = "140.91.0.0/17"
-#             protocol = "6"
-#             tcp_options {
-#                 max = "22"
-#                 min = "22"
-#             }
-#         },{
-#             stateless = false
-#             source = "147.154.0.0/16"
-#             protocol = "6"
-#             tcp_options {
-#                 max = "22"
-#                 min = "22"
-#             }
-#         },{
-#             stateless = false
-#             source = "192.29.0.0/16"
-#             protocol = "6"
-#             tcp_options {
-#                 max = "22"
-#                 min = "22"
-#             }
-#         }
-#     ]
-# }
 
 resource "oci_core_security_list" "oke-sl-w-optional" {
   compartment_id = var.compartment_ocid
@@ -206,9 +122,9 @@ resource "oci_core_security_list" "oke-sl-w-optional" {
 }
 
 resource "oci_core_subnet" "oke-sn-lb" {
-  compartment_id = var.compartment_ocid
-  vcn_id         = oci_core_virtual_network.oke-vcn.id
-  display_name   = "${var.oke_resource_prefix}-oke-sn-lb"
+  compartment_id             = var.compartment_ocid
+  vcn_id                     = oci_core_virtual_network.oke-vcn.id
+  display_name               = "${var.oke_resource_prefix}-oke-sn-lb"
   cidr_block                 = local.cidr_vcn_loadbalancer
   prohibit_public_ip_on_vnic = false
   route_table_id             = oci_core_route_table.oke-rt-igw.id
@@ -219,16 +135,16 @@ resource "oci_core_subnet" "oke-sn-lb" {
 }
 
 resource "oci_core_subnet" "oke-sn-w" {
-  compartment_id = var.compartment_ocid
-  vcn_id         = oci_core_virtual_network.oke-vcn.id
-  display_name   = "${var.oke_resource_prefix}-oke-sn-w"
-  cidr_block                 = local.cidr_vcn_worker
+  compartment_id             = var.compartment_ocid
+  vcn_id                     = oci_core_virtual_network.oke-vcn.id
+  display_name               = "${var.oke_resource_prefix}-oke-sn-w"
+  cidr_block                 = local.cidr_vcn_worker[0]
   prohibit_public_ip_on_vnic = true
   route_table_id             = oci_core_route_table.oke-rt-ngw.id
   security_list_ids = [
     oci_core_security_list.oke-sl-w-to-external-services.id,
+    oci_core_security_list.oke-sl-w-between-workers.id,
     # oci_core_security_list.oke-sl-w-optional.id,
   ]
   dns_label = "w"
 }
-
