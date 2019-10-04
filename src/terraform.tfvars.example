@@ -22,6 +22,6 @@ oke_node_pool_node_image_name = "Oracle-Linux-7.6"
 oke_node_pool_shape = [
     "VM.Standard1.1"
 ]
-oke_node_pool_quantity_per_subnet = [
+oke_node_pool_quantity = [
     1
 ]

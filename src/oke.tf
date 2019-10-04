@@ -22,7 +22,7 @@ variable "oke_node_pool_shape" {
   default = ["VM.Standard2.1"]
 }
 
-variable "oke_node_pool_quantity_per_subnet" {
+variable "oke_node_pool_quantity" {
   default = [1]
 }
 
@@ -65,7 +65,7 @@ resource "oci_containerengine_node_pool" "oke-node-pool" {
         subnet_id           = oci_core_subnet.oke-sn-w.id
       }
     }
-    size = element(var.oke_node_pool_quantity_per_subnet, count.index)
+    size = element(var.oke_node_pool_quantity, count.index)
   }
 }
 
