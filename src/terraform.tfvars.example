@@ -6,10 +6,13 @@ private_key_path = "../secrets/oci_api_key.pem"
 region = "us-ashburn-1"
 
 # Resource Name Prefix
-oke_resource_prefix = "multiad"
+oke_resource_prefix = "example"
 
 # Target Compartment
 compartment_ocid = "ocid1.compartment.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+# Run on the OCI Resource Manager
+on_resource_manager = false
 
 # OKE Cluster
 oke_kubernetes_version = "v1.13.5"
@@ -20,8 +23,8 @@ oke_helm_tiller_enabled = false
 oke_kubernetes_node_version = "v1.13.5"
 oke_node_pool_node_image_name = "Oracle-Linux-7.6"
 oke_node_pool_shape = [
-    "VM.Standard1.1"
+    "VM.Standard.E2.1"
 ]
 oke_node_pool_quantity = [
-    1
+    2
 ]

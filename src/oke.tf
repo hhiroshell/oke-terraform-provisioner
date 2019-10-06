@@ -21,14 +21,14 @@ variable "oke_node_pool_node_image_name" {
 variable "oke_node_pool_shape" {
   type = list(string)
   default = [
-    "VM.Standard2.1",
+    "VM.Standard.E2.1",
   ]
 }
 
 variable "oke_node_pool_quantity" {
   type = list(number)
   default = [
-    1,
+    2,
   ]
 }
 
@@ -76,12 +76,14 @@ resource "oci_containerengine_node_pool" "oke-node-pool" {
 }
 
 data "oci_containerengine_cluster_kube_config" "oke-kube-config" {
+  count         = "${var.on_resource_manager ? 0 : 1}"
   cluster_id    = oci_containerengine_cluster.oke-cluster.id
   expiration    = local.oke_kube_config_expiration
   token_version = local.oke_kube_config_token_version
 }
 
 resource "local_file" "kubeconfig" {
-  content  = data.oci_containerengine_cluster_kube_config.oke-kube-config.content
+  count    = "${var.on_resource_manager ? 0 : 1}"
+  content  = data.oci_containerengine_cluster_kube_config.oke-kube-config[count.index].content
   filename = "${path.module}/generated/kubeconfig"
 }
