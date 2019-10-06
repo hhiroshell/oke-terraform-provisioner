@@ -19,11 +19,17 @@ variable "oke_node_pool_node_image_name" {
 }
 
 variable "oke_node_pool_shape" {
-  default = ["VM.Standard2.1"]
+  type = list(string)
+  default = [
+    "VM.Standard2.1",
+  ]
 }
 
 variable "oke_node_pool_quantity" {
-  default = [1]
+  type = list(number)
+  default = [
+    1,
+  ]
 }
 
 locals {
