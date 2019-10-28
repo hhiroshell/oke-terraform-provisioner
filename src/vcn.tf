@@ -2,11 +2,7 @@ locals {
   cidr_public_internet  = "0.0.0.0/0"
   cidr_cluster_wide     = "10.0.0.0/16"
   cidr_vcn_loadbalancer = "10.0.20.0/24"
-  cidr_vcn_worker = [
-    "10.0.10.0/24",
-    "10.0.11.0/24",
-    "10.0.12.0/24",
-  ]
+  cidr_vcn_worker       = "10.0.10.0/24"
 }
 
 resource "oci_core_virtual_network" "oke-vcn" {
@@ -68,21 +64,15 @@ resource "oci_core_security_list" "oke-sl-w-between-workers" {
   compartment_id = "${var.compartment_ocid}"
   vcn_id = "${oci_core_virtual_network.oke-vcn.id}"
   display_name = "${var.oke_resource_prefix}-oke-sl-w-between-workers"
-  dynamic "egress_security_rules" {
-    for_each = local.cidr_vcn_worker
-    content {
-      stateless = true
-      destination = egress_security_rules.value
-      protocol = "all"
-    }
+  egress_security_rules {
+    stateless   = true
+    destination = local.cidr_vcn_worker
+    protocol    = "all"
   }
-  dynamic "ingress_security_rules" {
-    for_each = local.cidr_vcn_worker
-    content {
-      stateless = true
-      source = ingress_security_rules.value
-      protocol = "all"
-    }
+  ingress_security_rules {
+    stateless = true
+    source    = local.cidr_vcn_worker
+    protocol  = "all"
   }
 }
 
@@ -138,7 +128,7 @@ resource "oci_core_subnet" "oke-sn-w" {
   compartment_id             = var.compartment_ocid
   vcn_id                     = oci_core_virtual_network.oke-vcn.id
   display_name               = "${var.oke_resource_prefix}-oke-sn-w"
-  cidr_block                 = local.cidr_vcn_worker[0]
+  cidr_block                 = local.cidr_vcn_worker
   prohibit_public_ip_on_vnic = true
   route_table_id             = oci_core_route_table.oke-rt-ngw.id
   security_list_ids = [
