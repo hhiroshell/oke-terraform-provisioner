@@ -1,5 +1,5 @@
 variable "oke_kubernetes_version" {
-  default = "v1.13.5"
+  default = "v1.15.7"
 }
 
 variable "oke_kubernetes_dashboard_enabled" {
@@ -11,7 +11,7 @@ variable "oke_helm_tiller_enabled" {
 }
 
 variable "oke_kubernetes_node_version" {
-  default = "v1.13.5"
+  default = "v1.15.7"
 }
 
 variable "oke_node_pool_node_image_name" {
@@ -34,7 +34,7 @@ variable "oke_node_pool_quantity" {
 
 locals {
   oke_kube_config_expiration    = 2592000
-  oke_kube_config_token_version = "1.0.0"
+  oke_kube_config_token_version = "2.0.0"
 }
 
 resource "oci_containerengine_cluster" "oke-cluster" {
